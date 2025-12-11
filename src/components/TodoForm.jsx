@@ -2,12 +2,13 @@ import { useState, useEffect, useContext } from "react";
 import { Form, Button, Card, Row, Col } from "react-bootstrap";
 import { TodoContext } from "../contexts/TodoContext";
 
-export default function TodoForm({ currentTodo, setEditing }) {
-    const { addTodo, updateTodo } = useContext(TodoContext);
+export default function TodoForm({ currentTodo, setEditing, formId }) {
+    const setTodos = useContext(TodoContext).setTodos;
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [type, setType] = useState("Cardio");
     const [duration, setDuration] = useState("");
+    const [completed, setCompleted] = useState(false);
 
     useEffect(() => {
         if (currentTodo) {
@@ -26,13 +27,23 @@ export default function TodoForm({ currentTodo, setEditing }) {
     const handleSubmit = (e) => {
         e.preventDefault();
         const todoData = { title, description, type, duration };
-
         if (currentTodo) {
-            updateTodo(currentTodo.id, todoData);
-            setEditing(null);
+            setTodos((prevTodos) => (
+                prevTodos.map((prevTodo) => (
+                    prevTodo.id === currentTodo.id ? {...prevTodo, ...todoData} : prevTodo
+                ))
+            ))
         } else {
-            addTodo(todoData);
+            setTodos((prevTodos) => [
+                ...prevTodos, 
+                { 
+                    id: Date.now(), 
+                    completed,
+                    ...todoData
+                 }
+            ])
         }
+        
         setTitle("");
         setDescription("");
         setType("Cardio");
@@ -43,7 +54,7 @@ export default function TodoForm({ currentTodo, setEditing }) {
         <Card className="mb-4 shadow-sm border-0" style={{ backgroundColor: "#f8f9fa" }}>
             <Card.Body>
                 <Card.Title className="text-primary mb-3">{currentTodo ? "Edit Exercise" : "Add New Exercise"}</Card.Title>
-                <Form onSubmit={handleSubmit}>
+                <Form id={formId} onSubmit={handleSubmit}>
                     <Row>
                         <Col md={6}>
                             <Form.Group className="mb-3">

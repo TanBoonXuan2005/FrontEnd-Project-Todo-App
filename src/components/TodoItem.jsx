@@ -1,10 +1,19 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { Card, Button, Badge } from "react-bootstrap";
 import { TodoContext } from "../contexts/TodoContext";
 
 export default function TodoItem({ todo, setEditing, showDeleteModal }) {
     const [timer, setTimer] = useState(0);
     const [timerInterval, setTimerInterval] = useState(null);
+    const { setTodos } = useContext(TodoContext);
+
+    const updatedTodo = () => {
+        setTodos((prevTodos) => {
+            return prevTodos.map((prevTodo) => 
+                prevTodo.id === todo.id ? {...prevTodo, completed: !prevTodo.completed} : prevTodo
+            )
+        })
+    }
 
     const startTimer = () => {
         if (timerInterval === null) {
@@ -74,18 +83,22 @@ export default function TodoItem({ todo, setEditing, showDeleteModal }) {
 
                     <div className="d-flex flex-column gap-2">
                         <Button
-                            variant={todo.completed ? "secondary" : "success"}
+                            variant={todo.completed ? "warning" : "success"}
                             size="sm"
-                            onClick={() => toggleComplete(todo.id)}
+                            onClick={updatedTodo}
                         >
-                            {todo.completed ? "Undo" : "Done"}
+                            {todo.completed ? "⚠️ Undo" : "✅ Done"}
                         </Button>
-                        <Button variant="outline-primary" size="sm" onClick={() => setEditing(todo)}>
-                            ✏ Edit
-                        </Button>
-                        <Button variant="outline-danger" size="sm" onClick={() => showDeleteModal(todo.id)}>
-                            🗑 Delete
-                        </Button>
+                        {!todo.completed && (
+                            <>
+                                <Button variant="primary" size="sm" onClick={() => setEditing(todo)}>
+                                    ✏ Edit
+                                </Button>
+                                <Button variant="danger" size="sm" onClick={() => showDeleteModal(todo.id)}>
+                                    🗑 Delete
+                                </Button>
+                            </>
+                        )}
                     </div>
                 </div>
             </Card.Body>

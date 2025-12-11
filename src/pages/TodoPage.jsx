@@ -5,7 +5,7 @@ import TodoForm from "../components/TodoForm";
 import TodoItem from "../components/TodoItem";
 
 export default function TodoPage() {
-    const { todos, deleteTodo } = useContext(TodoContext);
+    const { todos, setTodos } = useContext(TodoContext);
     const [modalEditTodo, setModalEditTodo] = useState(false);
     const [editingTodo, setEditingTodo] = useState(null);
     const [modalDeleteTodo, setModalDeleteTodo] = useState(false);
@@ -21,6 +21,8 @@ export default function TodoPage() {
         setModalEditTodo(false);
     }
 
+    const handleClose = () => setModalEditTodo(false);
+
     const handleDeleteTodo = (id) => {
         setDeletingTodo(id);
         setModalDeleteTodo(true);
@@ -28,7 +30,9 @@ export default function TodoPage() {
 
     const confirmDelete = () => {
         if (deletingTodo) {
-            deleteTodo(deletingTodo)
+            setTodos((prevTodos) => 
+                prevTodos.filter((prevTodo) => prevTodo.id != deletingTodo)
+            )
         }
 
         setDeletingTodo(null);
@@ -66,20 +70,46 @@ export default function TodoPage() {
             </Row>
             <Modal show={modalEditTodo} onHide={handleEditClose} centered>
                 <Modal.Header closeButton>
-                    <Modal.Title>Edit Workout</Modal.Title>
+                    <Modal.Title>Edit</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <TodoForm
                         currentTodo={editingTodo}
                         setEditing={handleEditClose}
+                        formId="edit-todo"
                     />
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="danger" onClick={handleEditClose}>
-                        Close
+                        Cancel
                     </Button>
-                    <Button variant="success" type="submit" onClick={handleEditTodo}>
+                    <Button 
+                        variant="success" 
+                        type="submit" 
+                        form="edit-todo"  
+                        onClick={handleClose}
+                    >
                         Save Changes
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+            <Modal
+                show={modalDeleteTodo}
+                onHide={handleDeleteTodo}
+                centered
+            >
+                <Modal.Header closeButton>
+                    <Modal.Title>Confirm Delete</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    Are you sure want to delete this exercise?
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setModalDeleteTodo(false)}>
+                        Cancel
+                    </Button>
+                    <Button variant="danger" onClick={confirmDelete}>
+                        Delete
                     </Button>
                 </Modal.Footer>
             </Modal>
