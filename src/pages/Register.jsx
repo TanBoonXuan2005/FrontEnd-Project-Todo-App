@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Container, Form, Button, Card, Alert } from "react-bootstrap";
 import { useNavigate, Link } from "react-router-dom";
+import useLocalStorage from "use-local-storage";
 
 export default function Register() {
     const [username, setUsername] = useState("");
@@ -8,6 +9,7 @@ export default function Register() {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [error, setError] = useState("");
     const navigate = useNavigate();
+    const [users, setUsers] = useLocalStorage("users", []);
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -15,15 +17,12 @@ export default function Register() {
             setError("Passwords do not match");
             return;
         }
-
-        const users = JSON.parse(localStorage.getItem("users") || "[]");
         if (users.find(u => u.username === username)) {
             setError("Username already exists");
             return;
         }
 
-        users.push({ username, password });
-        localStorage.setItem("users", JSON.stringify(users));
+        setUsers([...users, { username, password }]);
         navigate("/login");
     };
 

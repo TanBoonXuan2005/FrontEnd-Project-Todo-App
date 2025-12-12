@@ -1,9 +1,10 @@
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect } from "react";
 import { Form, Button, Card, Row, Col } from "react-bootstrap";
-import { TodoContext } from "../contexts/TodoContext";
+import { useDispatch } from "react-redux";
+import { createTodo, updateTodo } from "../features/todos/todosSlice";
 
-export default function TodoForm({ currentTodo, setEditing, formId }) {
-    const setTodos = useContext(TodoContext).setTodos;
+export default function TodoForm({ currentTodo, setEditing, formId, showToast }) {
+    const dispatch = useDispatch();
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [type, setType] = useState("Cardio");
@@ -28,26 +29,22 @@ export default function TodoForm({ currentTodo, setEditing, formId }) {
         e.preventDefault();
         const todoData = { title, description, type, duration };
         if (currentTodo) {
-            setTodos((prevTodos) => (
-                prevTodos.map((prevTodo) => (
-                    prevTodo.id === currentTodo.id ? {...prevTodo, ...todoData} : prevTodo
-                ))
-            ))
+            dispatch(updateTodo({ id: currentTodo.id, completed: currentTodo.completed, ...todoData }));
+            if (showToast) {
+                showToast(`Exercise "${title}" updated successfully!`, "✅ Exercise Updated", "success");
+            }
+            setEditing(null);
+            
         } else {
-            setTodos((prevTodos) => [
-                ...prevTodos, 
-                { 
-                    id: Date.now(), 
-                    completed,
-                    ...todoData
-                 }
-            ])
+            dispatch(createTodo(todoData));
+            if (showToast) {
+                showToast(`Exercise "${title}" added successfully!`, "✅ Exercise Added", "success");
+            }
+            setTitle("");
+            setDescription("");
+            setType("Cardio");
+            setDuration("");
         }
-        
-        setTitle("");
-        setDescription("");
-        setType("Cardio");
-        setDuration("");
     };
 
     return (
@@ -85,10 +82,12 @@ export default function TodoForm({ currentTodo, setEditing, formId }) {
                             <Form.Group className="mb-3">
                                 <Form.Label>Duration</Form.Label>
                                 <Form.Control
-                                    type="text"
+                                    type="number"
                                     placeholder="e.g., 30 mins"
                                     value={duration}
                                     onChange={(e) => setDuration(e.target.value)}
+                                    min="1"
+                                    required
                                 />
                             </Form.Group>
                         </Col>

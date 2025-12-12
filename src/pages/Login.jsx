@@ -2,24 +2,25 @@ import { useState, useContext } from "react";
 import { Container, Form, Button, Card, Alert } from "react-bootstrap";
 import { useNavigate, Link } from "react-router-dom";
 import { AuthContext } from "../contexts/AuthContext";
+import useLocalStorage from "use-local-storage";
 
 export default function Login() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const { login } = useContext(AuthContext);
+    const [users] = useLocalStorage("users", []);
     const navigate = useNavigate();
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        const users = JSON.parse(localStorage.getItem("users") || "[]");
         const user = users.find(u => u.username === username && u.password === password);
         
         if (user || (username === "user" && password === "password")) {
             login(user ? user.username : username);
             navigate("/todos");
         } else {
-            setError("Invalid credentials. Try user/password");
+            setError("Invalid credentials. Try username or password");
         }
     };
 
