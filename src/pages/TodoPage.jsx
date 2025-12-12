@@ -1,7 +1,6 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { Container, Row, Col, Modal, Button, Toast, ToastContainer } from "react-bootstrap";
-import { useSelector, useDispatch } from "react-redux";
-import { deleteTodo, toggleComplete } from "../features/todos/todosSlice";
+import { TodoContext } from "../contexts/TodoContext";
 import TodoForm from "../components/TodoForm";
 import TodoItem from "../components/TodoItem";
 
@@ -14,8 +13,7 @@ export default function TodoPage() {
     const [forceDoneTodo, setForceDoneTodo] = useState(null);
     const [toasts, setToasts] = useState([]);
 
-    const todos = useSelector((state) => state.todos);
-    const dispatch = useDispatch();
+    const { todos, setTodos } = useContext(TodoContext);
 
     const handleEditTodo = (todo) => {
         setEditingTodo(todo);
@@ -34,10 +32,17 @@ export default function TodoPage() {
         setModalDeleteTodo(true);
     }
 
+    const toggleComplete = (id) => {
+        const updatedTodos = todos.map((todo) =>
+            todo.id === id ? { ...todo, completed: !todo.completed } : todo
+        );
+        setTodos(updatedTodos);
+    }
+
     const confirmDelete = () => {
         if (deletingTodo) {
             const todoToDelete = todos.find((prevTodo) => prevTodo.id === deletingTodo);
-            dispatch(deleteTodo(deletingTodo));
+            setTodos(todos.filter((todo) => todo.id !== deletingTodo));
             const title = todoToDelete ? todoToDelete.title : "";   
             showToast(`Exercise "${title}" deleted successfully!`, "🗑️ Exercise Deleted", "danger");
         }
@@ -48,14 +53,14 @@ export default function TodoPage() {
 
     const handleCheckDone = (todo, currentTimer) => {
         if (todo.completed) {
-            dispatch(toggleComplete(todo.id));
+            toggleComplete(todo.id);
             showToast(`"${todo.title}" marked as not completed. Keep going!`, "⚠️ Exercise Incomplete", "warning");
             return;
         }
 
         const targetTime = (parseFloat(todo.duration) || 0) * 60;
         if (currentTimer >= targetTime && targetTime > 0) {
-            dispatch(toggleComplete(todo.id));
+            toggleComplete(todo.id);
             showToast(`Great job! You completed "${todo.title}"!`, "🎉 Exercise Completed", "success");
         } else {
             setForceDoneTodo(todo);
@@ -65,7 +70,7 @@ export default function TodoPage() {
 
     const confirmForceDone = () => {
         if (forceDoneTodo) {
-            dispatch(toggleComplete(forceDoneTodo.id));
+            toggleComplete(forceDoneTodo.id);
             showToast(`Great job! You completed "${forceDoneTodo.title}"!`, "🎉 Exercise Completed", "success");
         }
         setForceDoneTodo(null);

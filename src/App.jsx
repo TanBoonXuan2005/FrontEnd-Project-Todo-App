@@ -5,9 +5,17 @@ import router from "./routes";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { TodoContext } from "./contexts/TodoContext";
 
+function TodoProvider({ username, children }) {
+  const [todos, setTodos] = useLocalStorage(`todos_${username}`, []);
+  return (
+    <TodoContext.Provider value={{ todos, setTodos }}>
+      {children}
+    </TodoContext.Provider>
+  );
+} 
+
 export default function App() {
   const [token, setToken] = useLocalStorage("token", null);
-  const [todos, setTodos] = useLocalStorage('todos', []);
 
   const login = (username) => {
     setToken({username})
@@ -15,6 +23,7 @@ export default function App() {
 
   const logout = () => {
     setToken(null)
+    window.location.href = "/login";
   }
 
   const value = {
@@ -24,11 +33,13 @@ export default function App() {
     logout
   }
 
+  const currentUsername = token ? token.username : "guest";
+
   return (
     <AuthContext.Provider value={value}>
-      <TodoContext.Provider value={{todos, setTodos}}>
+      <TodoProvider username={currentUsername} key={currentUsername}> 
         <RouterProvider router={router} />
-      </TodoContext.Provider>
+      </TodoProvider>
     </AuthContext.Provider>
   );
 }

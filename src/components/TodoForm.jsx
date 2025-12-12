@@ -1,15 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { Form, Button, Card, Row, Col } from "react-bootstrap";
-import { useDispatch } from "react-redux";
-import { createTodo, updateTodo } from "../features/todos/todosSlice";
+import { TodoContext } from "../contexts/TodoContext";
 
 export default function TodoForm({ currentTodo, setEditing, formId, showToast }) {
-    const dispatch = useDispatch();
+    const {todos, setTodos} = useContext(TodoContext);
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [type, setType] = useState("Cardio");
     const [duration, setDuration] = useState("");
-    const [completed, setCompleted] = useState(false);
+    
 
     useEffect(() => {
         if (currentTodo) {
@@ -29,14 +28,23 @@ export default function TodoForm({ currentTodo, setEditing, formId, showToast })
         e.preventDefault();
         const todoData = { title, description, type, duration };
         if (currentTodo) {
-            dispatch(updateTodo({ id: currentTodo.id, completed: currentTodo.completed, ...todoData }));
+            const updatedTodos = todos.map((todo) =>
+                todo.id === currentTodo.id ? { ...todo, ...todoData } : todo
+            );
+            setTodos(updatedTodos);
+            const title = todoData.title;
             if (showToast) {
                 showToast(`Exercise "${title}" updated successfully!`, "✅ Exercise Updated", "success");
             }
             setEditing(null);
             
         } else {
-            dispatch(createTodo(todoData));
+            const newTodo = {
+                id: Date.now(),
+                completed: false,
+                ...todoData,
+            };
+            setTodos([...todos, newTodo]);
             if (showToast) {
                 showToast(`Exercise "${title}" added successfully!`, "✅ Exercise Added", "success");
             }
