@@ -1,5 +1,5 @@
 import { useState, useContext } from "react";
-import { Container, Row, Col, Modal, Button, Toast, ToastContainer } from "react-bootstrap";
+import { Container, Row, Col, Modal, Button, Toast, ToastContainer, Card, Form, InputGroup, Dropdown } from "react-bootstrap";
 import { TodoContext } from "../contexts/TodoContext";
 import TodoForm from "../components/TodoForm";
 import TodoItem from "../components/TodoItem";
@@ -13,6 +13,8 @@ export default function TodoPage() {
     const [forceDoneTodo, setForceDoneTodo] = useState(null);
     const [toasts, setToasts] = useState([]);
 
+    const [searchTerm, setSearchTerm] = useState("");
+    const [filterStatus, setfilterStatus] = useState('all');
     const { todos, setTodos } = useContext(TodoContext);
 
     const handleEditTodo = (todo) => {
@@ -86,6 +88,14 @@ export default function TodoPage() {
         }, 4000);
     };
 
+    const filterTodos = todos.filter(todo => {
+        const matchTitle = todo.title.toLowerCase().includes(searchTerm.toLowerCase().trim()) || 
+                           todo.description.toLowerCase().includes(searchTerm.toLowerCase().trim());
+        const matchStatus = filterStatus === "all" ? true :
+                            filterStatus === "completed" ? todo.completed : !todo.completed;
+        return matchTitle && matchStatus;
+    });
+
     return (
         <Container className="mt-5">
             <h1 className="text-center mb-4 text-primary fw-bold">
@@ -100,14 +110,56 @@ export default function TodoPage() {
                             showToast={showToast}
                         />
                     </div>
+                    <Card className="mb-4 shadow-sm border-0 bg-light">
+                        <Card.Body>
+                            <Row className="g-2">
+                                <Col md={8}>
+                                    <InputGroup>
+                                        <InputGroup.Text className="bg-white border-end-0">
+                                            <i className="bi bi-search text-muted"></i>
+                                        </InputGroup.Text>
+                                        <Form.Control 
+                                            type="text" 
+                                            placeholder="Search exercises..." 
+                                            className="border-start-0"
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                        />
+                                    </InputGroup>
+                                </Col>
+                                <Col md={4} className="d-flex justify-content-end">
+                                    <Dropdown>
+                                        <Dropdown.Toggle variant="secondary" id="dropdown-basic" className="w-100">
+                                            Filter: {
+                                                filterStatus === "all" ? "All" : 
+                                                filterStatus === "completed" ? "Completed" : "Incomplete"
+                                            }
+                                        </Dropdown.Toggle>
+                                        <Dropdown.Menu>
+                                            <Dropdown.Item onClick={() => setfilterStatus("all")}>All</Dropdown.Item>
+                                            <Dropdown.Item onClick={() => setfilterStatus("completed")}>Completed</Dropdown.Item>
+                                            <Dropdown.Item onClick={() => setfilterStatus("incomplete")}>Incomplete</Dropdown.Item>
+                                        </Dropdown.Menu>
+                                    </Dropdown>
+                                </Col>
+                            </Row>
+                        </Card.Body>
+                    </Card>
 
                     <h3 className="mt-5 mb-3">Your Exercises</h3>
                     {todos.length === 0 ? (
                         <p className="text-center text-muted">
                             No exercises added yet. Start by adding one above!
                         </p>
+                    ) :  filterTodos.length === 0 ? (
+                        <div className="text-center text-muted" py-4>
+                            <p>No exercises match your search or filter criteria.</p>
+                            <Button variant="outline-primary" onClick={() => { setSearchTerm(""); setfilterStatus("all"); }}>
+                                Clear Filters
+                            </Button>
+                        </div>
                     ) : (
-                        todos.map((todo) => (
+                        filterTodos.map((todo) => (
                             <TodoItem 
                                 key={todo.id} 
                                 todo={todo} 

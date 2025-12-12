@@ -1,46 +1,71 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { Card, Button, Badge, ProgressBar } from "react-bootstrap";
+import { TodoContext } from "../contexts/TodoContext";
 
 export default function TodoItem({ todo, setEditing, showDeleteModal, showToast, handleCheckDone }) {
-    const [timer, setTimer] = useState(0);
-    const [timerInterval, setTimerInterval] = useState(null);
-
+    const {todos, setTodos} = useContext(TodoContext);
+    const isRunning = todo.isRunning || false;
+    const timeElapsed = todo.timeElapsed || 0;
+    const startTime = todo.startTime || 0;
     const targetTime = (parseFloat(todo.duration) || 0) * 60; 
-    const isTargetReached = timer >= targetTime && targetTime > 0;
-    
-    const startTimer = () => {
-        if (timerInterval === null) {
-            const intervalID = setInterval(() => {
-                setTimer((prevTimer) => prevTimer + 1);
-            }, 1000);
-            setTimerInterval(intervalID);
+
+    const calculateTimer = () => {
+        if (isRunning) {
+            const seconds = parseInt((Date.now() - startTime) / 1000, 10);
+            return timeElapsed + seconds;
         }
+
+        return timeElapsed;
+    }
+
+    const [timer, setTimer] = useState(timeElapsed);
+    const isTargetReached = timer >= targetTime && targetTime > 0;
+   
+    const updateTodo = (updates) => {
+        const updatedTodos = todos.map((prevTodo) =>
+            prevTodo.id === todo.id ? { ...prevTodo, ...updates } : prevTodo
+        );
+        setTodos(updatedTodos);
+    }
+
+    const startTimer = () => {
+        updateTodo({isRunning: true, startTime: Date.now()});
     };
 
     const pauseTimer = () => {
-        clearInterval(timerInterval);
-        setTimerInterval(null);
+        const seconds = parseInt((Date.now() - startTime) / 1000, 10);
+        const timer = timeElapsed + seconds;
+        updateTodo({isRunning: false, timeElapsed: timer});
     };
 
     const resetTimer = () => {
-        clearInterval(timerInterval);
-        setTimerInterval(null);
+        updateTodo({isRunning: false, timeElapsed: 0, startTime: 0});
         setTimer(0);
     };
 
     useEffect(() => {
-        return () => clearInterval(timerInterval);
-    }, [timerInterval]);
+        setTimer(calculateTimer());
+        let interval = null;
+        if (isRunning) {
+            interval = setInterval(() => {
+                setTimer(calculateTimer());
+            }, 1000);
+        }
+
+        return () => { 
+            if (interval) clearInterval(interval)
+        };
+    }, [isRunning, startTime, timeElapsed]);
 
     useEffect(() => {
-        if (timer === targetTime && targetTime > 0) {
+        if (timer === targetTime && targetTime > 0 && isRunning) {
             showToast(`Great job! You completed "${todo.title}" exercise!`, "🎉 Goal Reached!", "success");
         } 
-    }, [timer, targetTime]);
+    }, [timer, targetTime, isRunning]);
 
     const formatTime = (seconds) => {
-        const mins = Math.floor(seconds / 60);
         const secs = seconds % 60;
+        const mins = (seconds - secs) / 60;
         return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
     };
 
