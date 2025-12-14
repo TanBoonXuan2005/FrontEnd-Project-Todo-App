@@ -1,5 +1,6 @@
-import { useState, useContext } from "react";
-import { Container, Row, Col, Modal, Button, Toast, ToastContainer, Card, Form, InputGroup, Dropdown } from "react-bootstrap";
+import { useState, useContext, useEffect } from "react";
+import { Container, Row, Col, Modal, Button, Toast, ToastContainer, 
+         Card, Form, InputGroup, Dropdown, Spinner } from "react-bootstrap";
 import { TodoContext } from "../contexts/TodoContext";
 import TodoForm from "../components/TodoForm";
 import TodoItem from "../components/TodoItem";
@@ -11,11 +12,21 @@ export default function TodoPage() {
     const [deletingTodo, setDeletingTodo] = useState(null);
     const [modalForceDone, setModalForceDone] = useState(false);
     const [forceDoneTodo, setForceDoneTodo] = useState(null);
+    const [forceDoneTimer, setForceDoneTimer] = useState(0);
     const [toasts, setToasts] = useState([]);
 
+    const [isLoading, setIsLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
     const [filterStatus, setfilterStatus] = useState('all');
     const { todos, setTodos } = useContext(TodoContext);
+
+    useEffect(() => {
+        setIsLoading(true);
+        const timer = setTimeout(() => {
+            setIsLoading(false);
+        }, 500); 
+        return () => clearTimeout(timer);
+    }, [searchTerm, filterStatus]);
 
     const handleEditTodo = (todo) => {
         setEditingTodo(todo);
@@ -34,10 +45,25 @@ export default function TodoPage() {
         setModalDeleteTodo(true);
     }
 
-    const toggleComplete = (id) => {
-        const updatedTodos = todos.map((todo) =>
-            todo.id === id ? { ...todo, completed: !todo.completed } : todo
-        );
+    const toggleComplete = (id, finalTime = null) => {
+        const updatedTodos = todos.map((todo) => {
+            if (todo.id === id) {
+                const completed = !todo.completed;
+                let updates = { completed };
+                if (completed) {
+                    updates.isRunning = false;
+                    if (finalTime !== null && finalTime !== undefined) {
+                        updates.timeElapsed = finalTime;
+                        updates.startTime = 0;
+                    }
+                } else {
+                        updates.isRunning = true;
+                        updates.startTime = Date.now();
+                }
+                return { ...todo, ...updates };
+            }
+            return todo;
+        });
         setTodos(updatedTodos);
     }
 
@@ -62,20 +88,22 @@ export default function TodoPage() {
 
         const targetTime = (parseFloat(todo.duration) || 0) * 60;
         if (currentTimer >= targetTime && targetTime > 0) {
-            toggleComplete(todo.id);
+            toggleComplete(todo.id, currentTimer);
             showToast(`Great job! You completed "${todo.title}"!`, "🎉 Exercise Completed", "success");
         } else {
             setForceDoneTodo(todo);
+            setForceDoneTimer(currentTimer);
             setModalForceDone(true);
         }
     }
 
     const confirmForceDone = () => {
         if (forceDoneTodo) {
-            toggleComplete(forceDoneTodo.id);
+            toggleComplete(forceDoneTodo.id, forceDoneTimer);
             showToast(`Great job! You completed "${forceDoneTodo.title}"!`, "🎉 Exercise Completed", "success");
         }
         setForceDoneTodo(null);
+        setForceDoneTimer(0);
         setModalForceDone(false);
     }
 
@@ -147,28 +175,37 @@ export default function TodoPage() {
                     </Card>
 
                     <h3 className="mt-5 mb-3">Your Exercises</h3>
-                    {todos.length === 0 ? (
-                        <p className="text-center text-muted">
-                            No exercises added yet. Start by adding one above!
-                        </p>
-                    ) :  filterTodos.length === 0 ? (
-                        <div className="text-center text-muted" py-4>
-                            <p>No exercises match your search or filter criteria.</p>
-                            <Button variant="outline-primary" onClick={() => { setSearchTerm(""); setfilterStatus("all"); }}>
-                                Clear Filters
-                            </Button>
+                    {isLoading ? (
+                        <div className="text-center py-5">
+                            <Spinner animation="border" variant="primary">
+                                <span className="visually-hidden">Loading...</span>
+                            </Spinner>
+                            <p className="text-muted mt-2">Filtering results...</p>
                         </div>
                     ) : (
-                        filterTodos.map((todo) => (
-                            <TodoItem 
-                                key={todo.id} 
-                                todo={todo} 
-                                setEditing={handleEditTodo}
-                                showDeleteModal={handleDeleteTodo}
-                                showToast={showToast}
-                                handleCheckDone={handleCheckDone}
-                            />
-                        ))
+                        todos.length === 0 ? (
+                            <p className="text-center text-muted">
+                                No exercises added yet. Start by adding one above!
+                            </p>
+                        ) :  filterTodos.length === 0 ? (
+                            <div className="text-center text-muted" py-4>
+                                <p>No exercises match your search or filter criteria.</p>
+                                <Button variant="outline-primary" onClick={() => { setSearchTerm(""); setfilterStatus("all"); }}>
+                                    Clear Filters
+                                </Button>
+                            </div>
+                        ) : (
+                            filterTodos.map((todo) => (
+                                <TodoItem 
+                                    key={todo.id} 
+                                    todo={todo} 
+                                    setEditing={handleEditTodo}
+                                    showDeleteModal={handleDeleteTodo}
+                                    showToast={showToast}
+                                    handleCheckDone={handleCheckDone}
+                                />
+                            ))
+                        )
                     )}
                 </Col>
             </Row>
