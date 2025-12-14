@@ -4,6 +4,7 @@ import Register from "./pages/Register";
 import TodoPage from "./pages/TodoPage";
 import RequireAuth from "./components/RequireAuth";
 import Header from "./components/Header";
+import Profile from "./pages/Profile";
 import Home from "./pages/Home";
 
 const router = createBrowserRouter([
@@ -22,6 +23,14 @@ const router = createBrowserRouter([
             {
                 path: "register",
                 element: <Register/>
+            },
+            {
+                path: 'profile',
+                element: (
+                    <RequireAuth>
+                        <Profile />
+                    </RequireAuth>
+                )
             },
             {
                 path: "todos",

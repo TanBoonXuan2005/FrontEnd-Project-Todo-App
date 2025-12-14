@@ -6,6 +6,7 @@ export default function Home() {
     const {user} = useContext(AuthContext)
     return (
         <div className="container text-center mt-5">
+            <img src="/src/assets/FitTrack-Logo.png" width={'100px'} />
             <h1 className="display-4 fw-bold">🏋️ Welcome to FitTrack</h1>
             <p className="lead mt-3">
                 Your ultimate partner for managing your daily routine and achieving 
