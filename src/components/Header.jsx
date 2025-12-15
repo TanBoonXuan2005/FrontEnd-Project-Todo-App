@@ -15,6 +15,7 @@ export default function Header() {
 
     const currentUser = user ? users.find(u => u.username === user.username) : null;
     const userProfileImage = currentUser?.image || null;
+    const userBackgroundImage = currentUser?.background || null;
 
     const handleLogout = () => {
         logout();
@@ -47,12 +48,22 @@ export default function Header() {
                                                 src={userProfileImage}
                                                 alt="Profile"
                                                 className="rounded-circle"
-                                                style={{ width: "35px", height: "35px", objectFit: "cover", border: "2px solid white" }}
+                                                style={{ 
+                                                    width: "35px", 
+                                                    height: "35px", 
+                                                    objectFit: "cover", 
+                                                    border: "2px solid white" 
+                                                }}
                                             />
                                         ) : (
                                             <div
-                                                className="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center"
-                                                style={{ width: "35px", height: "35px", fontSize: "1.2rem", border: "2px solid white" }}
+                                                className="bg-secondary text-white rounded-circle d-inline-flex align-items-center justify-content-center"
+                                                style={{ 
+                                                    width: "35px", 
+                                                    height: "35px", 
+                                                    fontSize: "1.2rem", 
+                                                    border: "2px solid white" 
+                                                }}
                                             >
                                                 {user.username.charAt(0).toUpperCase()}
                                             </div>
@@ -60,39 +71,62 @@ export default function Header() {
                                     }
                                     id="profile-dropdown"
                                 >
-                                    <div className="text-center p-3" style={{ minWidth: "300px" }}>
-                                        <div className="mb-3">
-                                            {userProfileImage ? (
-                                                <Image 
-                                                    src={userProfileImage} 
-                                                    roundedCircle 
-                                                    style={{ width: "80px", height: "80px", objectFit: "cover", border: "2px solid #e9ecef" }} 
-                                                />
-                                            ) : (
-                                                <div 
-                                                    className="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto"
-                                                    style={{ width: "80px", height: "80px", fontSize: "2.5rem" }}
-                                                >
-                                                    {user.username.charAt(0).toUpperCase()}
-                                                </div>
-                                            )}
+                                    <div style={{ minWidth: "300px", padding: 0}}>
+                                        <div 
+                                            style={{ 
+                                                height: "100px", 
+                                                backgroundColor: "rgba(222, 226, 230, 1)",
+                                                backgroundImage: `url(${userBackgroundImage})`,
+                                                backgroundSize: "cover",
+                                                backgroundPosition: "center"
+                                            }}
+                                        ></div>
+                                        <div className="text-center px-3 pb-3">
+                                            <div style={{ marginTop: "-40px", marginBottom: "10px" }}>
+                                                {userProfileImage ? (
+                                                    <Image 
+                                                        src={userProfileImage} 
+                                                        roundedCircle 
+                                                        style={{ 
+                                                            width: "80px", 
+                                                            height: "80px", 
+                                                            objectFit: "cover", 
+                                                            border: "4px solid white", 
+                                                            boxShadow: "0 2px 4px rgba(0,0,0,0.1)" 
+                                                        }} 
+                                                    />
+                                                ) : (
+                                                    <div 
+                                                        className="bg-secondary text-white rounded-circle d-inline-flex align-items-center justify-content-center mx-auto"
+                                                        style={{ 
+                                                            width: "80px", 
+                                                            height: "80px", 
+                                                            fontSize: "2.5rem", 
+                                                            border: "4px solid white", 
+                                                            boxShadow: "0 2px 4px rgba(0,0,0,0.1)" 
+                                                        }}
+                                                    >
+                                                        {user.username.charAt(0).toUpperCase()}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <h5 className="fw-bold mb-3">Hi, {user.username}!</h5>
+                                            
+                                            <Link 
+                                                to="/profile" 
+                                                className="btn btn-outline-secondary rounded-pill px-4"
+                                                style={{ fontSize: "0.9rem" }}
+                                            >
+                                                Manage your Profile
+                                            </Link>
                                         </div>
-                                        <h5 className="fw-bold mb-3">Hi, {user.username}!</h5>
-                                        
-                                        <Link 
-                                            to="/profile" 
-                                            className="btn btn-outline-secondary rounded-pill px-4"
-                                            style={{ fontSize: "0.9rem" }}
-                                        >
-                                            Manage your Profile
-                                        </Link>
+
+                                        <NavDropdown.Divider />
+
+                                        <NavDropdown.Item onClick={handleShow} className="text-danger fw-bold ">
+                                            <i className="bi bi-box-arrow-right me-2"></i> Logout
+                                        </NavDropdown.Item>
                                     </div>
-
-                                    <NavDropdown.Divider />
-
-                                    <NavDropdown.Item onClick={handleShow} className="text-danger fw-bold ">
-                                        <i className="bi bi-box-arrow-right me-2"></i> Logout
-                                    </NavDropdown.Item>
                                 </NavDropdown>
                             ) : (
                                 <>

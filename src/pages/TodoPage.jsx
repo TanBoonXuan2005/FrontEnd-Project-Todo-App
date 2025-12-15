@@ -180,7 +180,7 @@ export default function TodoPage() {
                             <Spinner animation="border" variant="primary">
                                 <span className="visually-hidden">Loading...</span>
                             </Spinner>
-                            <p className="text-muted mt-2">Filtering results...</p>
+                            <p className="text-muted mt-2">Loading...</p>
                         </div>
                     ) : (
                         todos.length === 0 ? (

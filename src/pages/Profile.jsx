@@ -17,6 +17,8 @@ export default function Profile() {
     const [imageUrl, setImageUrl] = useState('');
     const [backgroundUrl, setBackgroundUrl] = useState('');
 
+    const [showMsgModal, setShowMsgModal] = useState(false);
+
     // Modal vibility states
     const [showProfileImageModal, setShowProfileImageModal] = useState(false);
     const [showBackgroundImageModal, setShowBackgroundImageModal] = useState(false);
@@ -36,6 +38,11 @@ export default function Profile() {
     const pendingTodos = totalTodos - completedTodos;
     const completionRate = totalTodos > 0 ? Math.round((completedTodos / totalTodos) * 100) : 0;
 
+    const showNotification = (text, type) => {
+        setMessage({ text, type });
+        setShowMsgModal(true);
+    };
+
     const handleCloseModals = () => {
         setShowBackgroundImageModal(false);
         setShowProfileImageModal(false);
@@ -52,7 +59,7 @@ export default function Profile() {
         );
         setUsers(updatedUsers);
         handleCloseModals();
-        setMessage({ text: "Profile picture updated!", type: "success" });
+        showNotification("Profile picture updated!", "success");
     }
 
     const handleBackgroundChange = () => {
@@ -62,7 +69,7 @@ export default function Profile() {
         );
         setUsers(updatedUsers);
         handleCloseModals();
-        setMessage({ text: "Background image updated!", type: "success" });
+        showNotification("Background image updated!", "success");
     }
 
     const handlePasswordChange = (e) => {
@@ -85,7 +92,7 @@ export default function Profile() {
             u.username === user.username ? { ...u, password: newPassword } : u
         );
         setUsers(updatedUsers);
-        setMessage({ text: "Password updated successfully!", type: "success" });
+        showNotification("Password updated successfully!", "success");
         setCurrentPassword("");
         setNewPassword("");
         setConfirmNewPassword("");
@@ -109,9 +116,6 @@ export default function Profile() {
         <Container className="py-3">
             <div className="container text-center mb-5">
                 <h1 className="display-4 fw-bold">👤 User Profile</h1>
-                <p className="lead text-muted">
-                    <strong>Welcome back,</strong> <span className="text-primary fw-bold">{user ? user.username : "Guest"}</span>!
-                </p>
             </div>
             <Row className="justify-content-center mb-5">
                 <Col md={8}>
@@ -215,11 +219,6 @@ export default function Profile() {
                             <h4 className="mb-0">🔒 Change Password</h4>
                         </Card.Header>
                         <Card.Body className="p-4">
-                            {message.text && (
-                                <Alert variant={message.type} onClose={() => setMessage({ type: "", text: "" })} dismissible>
-                                    {message.text}
-                                </Alert>
-                            )}
                             <Form onSubmit={handlePasswordChange}>
                                 <Form.Group className="mb-3">
                                     <Form.Label>Current Password</Form.Label>
@@ -380,6 +379,29 @@ export default function Profile() {
                         Save Change
                     </Button>
                 </Modal.Footer>    
+            </Modal>
+
+            <Modal show={showMsgModal} onHide={() => setShowMsgModal(false)} centered>
+                <Modal.Header closeButton className={message.type === 'success' ? 'bg-success text-white' : 'bg-danger text-white'}>
+                    <Modal.Title>
+                        {message.type === 'success' ? 'Success' : 'Error'}
+                    </Modal.Title>
+                </Modal.Header>
+                <Modal.Body className="text-center p-4">
+                    <div className="mb-3">
+                        {message.type === 'success' ? (
+                            <i className="bi bi-check-circle-fill text-success display-3"></i>
+                        ) : (
+                            <i className="bi bi-exclamation-triangle-fill text-danger display-3"></i>
+                        )}
+                    </div>
+                    <h5 className="mb-0">{message.text}</h5>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant={message.type === 'success' ? 'success' : 'danger'} onClick={() => setShowMsgModal(false)}>
+                        Close
+                    </Button>
+                </Modal.Footer>
             </Modal>
         </Container>
     );
