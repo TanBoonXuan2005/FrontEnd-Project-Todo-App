@@ -49,7 +49,7 @@ export default function Home() {
                                         </Button>
                                     </Link>
                                     <Link to="/profile">
-                                        <Button variant="outline-secondary" size="lg" className="px-4 rounded-pill">
+                                        <Button variant="secondary" size="lg" className="px-4 rounded-pill">
                                             Profile
                                         </Button>
                                     </Link>
